@@ -1,0 +1,68 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# .github/workflows/deploy.yml — Frontend CI/CD
+# ═══════════════════════════════════════════════════════════════════════════
+# JOB test:  install deps + production build (catches broken imports)
+# JOB deploy: optional Vercel deploy when VERCEL_TOKEN secret exists
+#
+# Secrets (GitHub → Settings → Secrets → Actions):
+#   VERCEL_TOKEN
+#   VERCEL_ORG_ID
+#   VERCEL_PROJECT_ID
+# ═══════════════════════════════════════════════════════════════════════════
+
+name: Frontend CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Lint & build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Production build
+        env:
+          # Dummy API URL so Vite build succeeds in CI
+          VITE_API_URL: https://example.com/api
+        run: npm run build
+
+  deploy:
+    name: Deploy to Vercel
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Vercel
+        # Skip gracefully if secrets are not configured yet
+        run: |
+          if [ -z "${{ secrets.VERCEL_TOKEN }}" ]; then
+            echo "VERCEL_TOKEN not set — skipping deploy."
+            echo "Add VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID in repo secrets."
+            exit 0
+          fi
+          npx vercel --token "${{ secrets.VERCEL_TOKEN }}" \
+            --prod \
+            --yes \
+            --scope "${{ secrets.VERCEL_ORG_ID }}"
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VITE_API_URL: ${{ vars.VITE_API_URL }}

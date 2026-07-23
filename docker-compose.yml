@@ -1,0 +1,19 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# docker-compose.yml — Run the frontend container locally
+# ═══════════════════════════════════════════════════════════════════════════
+# The frontend talks to the BACKEND API (separate repo / compose stack).
+# Set VITE_API_URL to wherever Django is reachable.
+#
+#   docker compose up --build
+#   open http://localhost:3000
+# ═══════════════════════════════════════════════════════════════════════════
+
+services:
+  frontend:
+    build:
+      context: .
+      args:
+        # Point at the backend API (change for production)
+        VITE_API_URL: http://localhost:8000/api
+    ports:
+      - "3000:80"

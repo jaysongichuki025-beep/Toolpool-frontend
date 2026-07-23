@@ -136,6 +136,14 @@ export default function ToolDetail() {
               Manage on lender dashboard
             </Link>
           </p>
+        ) : !user ? (
+          <div className="panel mt-4 space-y-3 p-4">
+            <h3 className="font-display text-xl">Want to borrow this?</h3>
+            <p className="text-sm text-steel">Log in to pick dates and send a request to the owner.</p>
+            <Link to="/login" className="btn-primary inline-flex">
+              Log in to request
+            </Link>
+          </div>
         ) : (
           <form onSubmit={submitRequest} className="panel mt-4 space-y-3 p-4">
             <h3 className="font-display text-xl">Request this tool</h3>

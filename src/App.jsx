@@ -25,15 +25,15 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route element={<Layout />}>
-            {/* Public */}
+            {/* Public — browse without an account; requesting still needs login */}
             <Route index element={<Home />} />
             <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />
+            <Route path="browse" element={<BrowseTools />} />
+            <Route path="tools/:id" element={<ToolDetail />} />
 
-            {/* Auth required — browse also needs JWT because API defaults to IsAuthenticated */}
+            {/* Auth required */}
             <Route element={<ProtectedRoute />}>
-              <Route path="browse" element={<BrowseTools />} />
-              <Route path="tools/:id" element={<ToolDetail />} />
               <Route path="tools/new" element={<ListTool />} />
               <Route path="dashboard" element={<BorrowerDashboard />} />
               <Route path="lender" element={<LenderDashboard />} />

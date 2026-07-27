@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import ToolCard from '../components/ToolCard'
 import { fetchCategories, fetchTools, deleteTool, updateToolStatus } from '../api/tools'
-import { fetchCurrentUser } from '../api/auth' // Adjust import path if needed
 
 export default function BrowseTools() {
   const [tools, setTools] = useState([])
@@ -14,11 +13,16 @@ export default function BrowseTools() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  // Fetch current user details on mount
+  // Load current user from local storage or decode token safely
   useEffect(() => {
-    fetchCurrentUser()
-      .then((user) => setCurrentUser(user))
-      .catch(() => setCurrentUser(null))
+    try {
+      const userStr = localStorage.getItem('user')
+      if (userStr) {
+        setCurrentUser(JSON.parse(userStr))
+      }
+    } catch {
+      setCurrentUser(null)
+    }
 
     fetchCategories()
       .then((data) => {
@@ -28,7 +32,7 @@ export default function BrowseTools() {
       .catch(() => setCategories([]))
   }, [])
 
-  // Fetch tools filtered by search/category
+  // Fetch tools
   useEffect(() => {
     const load = async () => {
       setLoading(true)
@@ -56,7 +60,6 @@ export default function BrowseTools() {
   const handleDeleteTool = async (toolId) => {
     try {
       await deleteTool(toolId)
-      // Remove tool locally to update UI immediately
       setTools((prev) => prev.filter((tool) => tool.id !== toolId))
     } catch (err) {
       console.error('Failed to delist tool:', err)
@@ -64,11 +67,10 @@ export default function BrowseTools() {
     }
   }
 
-  // Update Status Handler (e.g. available <-> maintenance)
+  // Update Status Handler
   const handleStatusChange = async (toolId, newStatus) => {
     try {
       await updateToolStatus(toolId, newStatus)
-      // Update status locally
       setTools((prev) =>
         prev.map((t) => (t.id === toolId ? { ...t, status: newStatus } : t))
       )

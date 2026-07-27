@@ -13,7 +13,7 @@ export default function BrowseTools() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  // Load current user from localStorage
+  // Load current user safely from localStorage
   useEffect(() => {
     try {
       const userStr = localStorage.getItem('user')

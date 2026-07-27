@@ -1,23 +1,34 @@
-/** BrowseTools — search + category filter */
+/** BrowseTools — search + category filter + owner actions */
 
 import { useEffect, useState } from 'react'
 import ToolCard from '../components/ToolCard'
-import { fetchCategories, fetchTools } from '../api/tools'
+import { fetchCategories, fetchTools, deleteTool, updateToolStatus } from '../api/tools'
+import { fetchCurrentUser } from '../api/auth' // Adjust import path if needed
 
 export default function BrowseTools() {
   const [tools, setTools] = useState([])
   const [categories, setCategories] = useState([])
+  const [currentUser, setCurrentUser] = useState(null)
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
+  // Fetch current user details on mount
   useEffect(() => {
+    fetchCurrentUser()
+      .then((user) => setCurrentUser(user))
+      .catch(() => setCurrentUser(null))
+
     fetchCategories()
-      .then((data) => setCategories(data.results || data))
-      .catch(() => {})
+      .then((data) => {
+        const list = Array.isArray(data) ? data : data.results || []
+        setCategories(list)
+      })
+      .catch(() => setCategories([]))
   }, [])
 
+  // Fetch tools filtered by search/category
   useEffect(() => {
     const load = async () => {
       setLoading(true)
@@ -27,17 +38,45 @@ export default function BrowseTools() {
         if (search) params.search = search
         if (category) params.category = category
         const data = await fetchTools(params)
-        setTools(data.results || data)
+        const list = Array.isArray(data) ? data : data.results || []
+        setTools(list)
       } catch {
-        setError('Could not load tools. Is the backend running on port 8000?')
+        setError('Could not load tools.')
+        setTools([])
       } finally {
         setLoading(false)
       }
     }
-    // Small debounce so we don't fire on every keystroke
-    const t = setTimeout(load, 250)
+
+    const t = setTimeout(load, 200)
     return () => clearTimeout(t)
   }, [search, category])
+
+  // Delist / Delete Tool Handler
+  const handleDeleteTool = async (toolId) => {
+    try {
+      await deleteTool(toolId)
+      // Remove tool locally to update UI immediately
+      setTools((prev) => prev.filter((tool) => tool.id !== toolId))
+    } catch (err) {
+      console.error('Failed to delist tool:', err)
+      alert(err?.response?.data?.detail || 'Failed to delist tool.')
+    }
+  }
+
+  // Update Status Handler (e.g. available <-> maintenance)
+  const handleStatusChange = async (toolId, newStatus) => {
+    try {
+      await updateToolStatus(toolId, newStatus)
+      // Update status locally
+      setTools((prev) =>
+        prev.map((t) => (t.id === toolId ? { ...t, status: newStatus } : t))
+      )
+    } catch (err) {
+      console.error('Failed to update status:', err)
+      alert('Could not update tool status.')
+    }
+  }
 
   return (
     <div className="animate-fade-up">
@@ -77,7 +116,13 @@ export default function BrowseTools() {
       ) : (
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {tools.map((tool) => (
-            <ToolCard key={tool.id} tool={tool} />
+            <ToolCard
+              key={tool.id}
+              tool={tool}
+              currentUser={currentUser}
+              onDelete={handleDeleteTool}
+              onStatusChange={handleStatusChange}
+            />
           ))}
         </div>
       )}

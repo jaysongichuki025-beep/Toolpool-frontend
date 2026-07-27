@@ -1,4 +1,4 @@
-/** Tools API — browse, create, status, availability */
+/** Tools API — browse, create, status, availability, delete */
 
 import client from './client'
 
@@ -31,6 +31,12 @@ export async function updateTool(id, formData) {
 
 export async function updateToolStatus(id, status) {
   const { data } = await client.patch(`/tools/${id}/status/`, { status })
+  return data
+}
+
+export async function deleteTool(id) {
+  // DELETE /api/tools/{id}/ — Delists/deletes tool (owner only)
+  const { data } = await client.delete(`/tools/${id}/`)
   return data
 }
 

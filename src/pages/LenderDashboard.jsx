@@ -1,10 +1,10 @@
-/** LenderDashboard — my tools, status toggle, approve/decline requests */
+/** LenderDashboard — my tools, status toggle, delist, approve/decline requests */
 
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import StatusBadge from '../components/StatusBadge'
 import { fetchRentals, markReturned, respondRental } from '../api/rentals'
-import { fetchTools, updateToolStatus } from '../api/tools'
+import { deleteTool, fetchTools, updateToolStatus } from '../api/tools'
 import { formatDate } from '../utils/formatters'
 
 export default function LenderDashboard() {
@@ -32,6 +32,16 @@ export default function LenderDashboard() {
   const setStatus = async (id, status) => {
     await updateToolStatus(id, status)
     load()
+  }
+
+  const delist = async (id, title) => {
+    if (!window.confirm(`Are you sure you want to delist "${title}"?`)) return
+    try {
+      await deleteTool(id)
+      load()
+    } catch {
+      setError('Could not delist tool.')
+    }
   }
 
   const respond = async (id, action) => {
@@ -72,15 +82,24 @@ export default function LenderDashboard() {
                   <StatusBadge status={tool.status} />
                 </div>
               </div>
-              <select
-                className="input-field w-auto"
-                value={tool.status}
-                onChange={(e) => setStatus(tool.id, e.target.value)}
-              >
-                <option value="available">Available</option>
-                <option value="in_use">In Use</option>
-                <option value="maintenance">Under Maintenance</option>
-              </select>
+              <div className="flex items-center gap-2">
+                <select
+                  className="input-field w-auto"
+                  value={tool.status}
+                  onChange={(e) => setStatus(tool.id, e.target.value)}
+                >
+                  <option value="available">Available</option>
+                  <option value="in_use">In Use</option>
+                  <option value="maintenance">Under Maintenance</option>
+                </select>
+                <button
+                  type="button"
+                  className="btn-danger !py-1.5 !text-xs"
+                  onClick={() => delist(tool.id, tool.title)}
+                >
+                  Delist
+                </button>
+              </div>
             </article>
           ))}
         </div>

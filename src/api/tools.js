@@ -3,9 +3,7 @@
 import client from './client'
 
 export async function fetchTools(params = {}) {
-  // params become query string: ?search=drill&category=1
   const { data } = await client.get('/tools/', { params })
-  // DRF pagination returns { count, next, previous, results }
   return data
 }
 
@@ -15,7 +13,6 @@ export async function fetchTool(id) {
 }
 
 export async function createTool(formData) {
-  // formData = FormData with optional primary_image file
   const { data } = await client.post('/tools/', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   })
@@ -35,7 +32,6 @@ export async function updateToolStatus(id, status) {
 }
 
 export async function deleteTool(id) {
-  // DELETE /api/tools/{id}/ — Delists/deletes tool (owner only)
   const { data } = await client.delete(`/tools/${id}/`)
   return data
 }

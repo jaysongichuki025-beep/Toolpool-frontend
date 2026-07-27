@@ -13,7 +13,6 @@ export default function BrowseTools() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  // Load current user safely from localStorage
   useEffect(() => {
     try {
       const userStr = localStorage.getItem('user')
@@ -32,7 +31,6 @@ export default function BrowseTools() {
       .catch(() => setCategories([]))
   }, [])
 
-  // Fetch tools filtered by search/category
   useEffect(() => {
     const load = async () => {
       setLoading(true)
@@ -56,7 +54,6 @@ export default function BrowseTools() {
     return () => clearTimeout(t)
   }, [search, category])
 
-  // Delist / Delete Tool Handler
   const handleDeleteTool = async (toolId) => {
     try {
       await deleteTool(toolId)
@@ -67,7 +64,6 @@ export default function BrowseTools() {
     }
   }
 
-  // Update Status Handler
   const handleStatusChange = async (toolId, newStatus) => {
     try {
       await updateToolStatus(toolId, newStatus)

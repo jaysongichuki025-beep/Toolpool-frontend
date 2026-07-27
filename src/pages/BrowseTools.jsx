@@ -13,7 +13,7 @@ export default function BrowseTools() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  // Load current user from local storage or decode token safely
+  // Load current user from localStorage
   useEffect(() => {
     try {
       const userStr = localStorage.getItem('user')
@@ -32,7 +32,7 @@ export default function BrowseTools() {
       .catch(() => setCategories([]))
   }, [])
 
-  // Fetch tools
+  // Fetch tools filtered by search/category
   useEffect(() => {
     const load = async () => {
       setLoading(true)
